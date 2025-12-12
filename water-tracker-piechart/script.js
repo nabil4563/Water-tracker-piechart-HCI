@@ -33,7 +33,6 @@ const radius  = 120;
 const segmentTitle = document.getElementById("segmentTitle");
 const segmentValue = document.getElementById("segmentValue");
 const legendEl     = document.getElementById("legend");
-const clickSound   = document.getElementById("clickSound");
 const editButton   = document.getElementById("editButton");
 const newButton    = document.getElementById("newButton");
 
@@ -49,6 +48,93 @@ const newValueEl  = document.getElementById("newValue");
 const deleteEdit  = document.getElementById("deleteEdit");
 const cancelEdit  = document.getElementById("cancelEdit");
 const saveEdit    = document.getElementById("saveEdit");
+
+// ------------------------
+// ADVANCED GAMIFIED AUDIO (Web Audio API)
+// ------------------------
+let audioCtx = null;
+
+function ensureAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  // some browsers start suspended until first user gesture
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume().catch(() => {});
+  }
+}
+
+// A tiny synth tone with an envelope (this is already "advanced")
+function playTone({ freq = 440, type = "sine", duration = 0.12, volume = 0.18, curve = "exp" } = {}) {
+  ensureAudio();
+  const t0 = audioCtx.currentTime;
+
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t0);
+
+  // envelope (fade in/out)
+  gain.gain.setValueAtTime(0.0001, t0);
+  if (curve === "exp") {
+    gain.gain.exponentialRampToValueAtTime(volume, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+  } else {
+    gain.gain.linearRampToValueAtTime(volume, t0 + 0.02);
+    gain.gain.linearRampToValueAtTime(0.0001, t0 + duration);
+  }
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.start(t0);
+  osc.stop(t0 + duration + 0.01);
+}
+
+// A short "reward chime" (gamification achievement cue)
+function playRewardChime() {
+  ensureAudio();
+  const now = audioCtx.currentTime;
+
+  // 3-step rising notes (classic success feel)
+  const notes = [523, 659, 784]; // C5, E5, G5
+  notes.forEach((f, i) => {
+    setTimeout(() => {
+      playTone({ freq: f, type: "sine", duration: 0.12, volume: 0.22, curve: "exp" });
+    }, i * 90);
+  });
+
+  // tiny bonus sparkle
+  setTimeout(() => {
+    playTone({ freq: 1200, type: "triangle", duration: 0.08, volume: 0.12, curve: "exp" });
+  }, 280);
+}
+
+// A short "mode change" cue (enter/exit edit mode)
+function playModeToggle() {
+  // down-up blip = "state changed"
+  playTone({ freq: 260, type: "square", duration: 0.10, volume: 0.12, curve: "linear" });
+  setTimeout(() => {
+    playTone({ freq: 360, type: "square", duration: 0.10, volume: 0.12, curve: "linear" });
+  }, 90);
+}
+
+// Neutral feedback (exploration / tap)
+function playNeutralTap() {
+  playTone({ freq: 420, type: "triangle", duration: 0.08, volume: 0.10, curve: "exp" });
+}
+
+// Soft "open modal" cue
+function playOpenPopup() {
+  playTone({ freq: 520, type: "sine", duration: 0.10, volume: 0.10, curve: "exp" });
+}
+
+// Error / delete cue (gentle, not annoying)
+function playDeleteCue() {
+  playTone({ freq: 180, type: "sawtooth", duration: 0.10, volume: 0.10, curve: "linear" });
+}
+
 
 // which view is active? "breakdown" | "weekly" | "daily"
 let currentView = "breakdown";
@@ -69,10 +155,18 @@ function totalUsage() {
   return usageData.reduce((s, item) => s + item.value, 0);
 }
 
-function playClickSound() {
-  clickSound.currentTime = 0;
-  clickSound.play().catch(() => {});
+// ------------------------
+// Gamified audio router (replaces MP3 clickSound usage)
+// ------------------------
+function playClickSound(type = "tap") {
+  // type can be: "tap" | "mode" | "popup" | "reward" | "delete"
+  if (type === "mode") return playModeToggle();
+  if (type === "popup") return playOpenPopup();
+  if (type === "reward") return playRewardChime();
+  if (type === "delete") return playDeleteCue();
+  return playNeutralTap(); // default: "tap"
 }
+
 
 // ------------------------
 // Legend (pie view)
@@ -341,7 +435,13 @@ canvas.addEventListener("click", (e) => {
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
-  playClickSound();
+  // Gamified audio: explore in view mode, popup cue in edit mode
+if (currentView === "breakdown") {
+  playClickSound(isEditMode ? "popup" : "tap");
+} else {
+  playClickSound("tap");
+}
+
 
   if (currentView === "breakdown") {
     const index = getClickedSegmentIndex(x, y);
@@ -378,7 +478,7 @@ canvas.addEventListener("click", (e) => {
 // Edit button -> toggle edit mode (for breakdown only)
 // ------------------------
 editButton.addEventListener("click", () => {
-  playClickSound();
+  playClickSound("mode");
   if (currentView !== "breakdown") {
     // ignore or give little feedback
     segmentTitle.textContent = "Edit mode";
@@ -393,14 +493,25 @@ editButton.addEventListener("click", () => {
 // "New" button -> Add new category (only in edit mode)
 newButton.addEventListener("click", () => {
   if (currentView !== "breakdown") return;
-  playClickSound();
+  playClickSound("popup");
   openAddModal();
 });
 
-// Cancel closes modal
+// Cancel closes modal (neutral feedback)
 cancelEdit.addEventListener("click", () => {
+  playClickSound("tap");
   closeEditModal();
 });
+
+// Close modal when clicking backdrop (neutral feedback)
+editModal.addEventListener("click", (e) => {
+  if (e.target === editModal || e.target.classList.contains("modal-backdrop")) {
+    playClickSound("tap");
+    closeEditModal();
+  }
+});
+
+
 
 // Save (Add or Edit)
 saveEdit.addEventListener("click", () => {
@@ -423,7 +534,7 @@ saveEdit.addEventListener("click", () => {
     usageData[editingIndex].value = rawVal;
   }
 
-  playClickSound();
+  playClickSound("reward");
   closeEditModal();
   renderView();
 });
@@ -436,7 +547,7 @@ deleteEdit.addEventListener("click", () => {
   if (!confirmed) return;
 
   usageData.splice(editingIndex, 1);
-  playClickSound();
+  playClickSound("delete");
   closeEditModal();
   renderView();
 });
