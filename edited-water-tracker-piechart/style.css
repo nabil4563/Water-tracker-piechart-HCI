@@ -16,9 +16,9 @@ body {
 /* Phone frame */
 .app {
   position: relative;
-  background: #ffffff;
-  width: 390px;      /* mobile-ish width */
-  height: 844px;     /* mobile-ish height */
+  background: #DAFCF3; /* Caribbean Green */
+  width: 390px;
+  height: 844px;
   border-radius: 28px;
   box-shadow: 0 14px 35px rgba(0,0,0,0.18);
   display: flex;
@@ -27,14 +27,13 @@ body {
 }
 
 /* Top bar */
-
 .top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 18px;
-  border-bottom: 1px solid #e2e6ee;
-  background: #f9fafc;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  background: #DAFCF3;
 }
 
 .icon-button {
@@ -50,7 +49,6 @@ body {
 }
 
 /* Main content */
-
 .content {
   flex: 1;
   padding: 14px 18px 8px;
@@ -58,7 +56,6 @@ body {
 }
 
 /* Dropdown */
-
 .dropdown {
   position: relative;
   margin-bottom: 10px;
@@ -66,7 +63,7 @@ body {
 
 .dropdown-label {
   width: 100%;
-  border: 1px solid #d3d9e6;
+  border: 1px solid rgba(0,0,0,0.12);
   background: #ffffff;
   border-radius: 10px;
   padding: 8px 12px;
@@ -89,8 +86,8 @@ body {
   background: #ffffff;
   border-radius: 10px;
   margin-top: 4px;
-  border: 1px solid #d3d9e6;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
   display: none;
   z-index: 10;
 }
@@ -113,7 +110,6 @@ body {
 }
 
 /* Titles */
-
 .screen-title {
   font-size: 18px;
   font-weight: 600;
@@ -122,12 +118,11 @@ body {
 
 .screen-desc {
   font-size: 12px;
-  color: #6c7484;
+  color: #4a5a5a;
   margin-top: 2px;
 }
 
 /* Chart */
-
 .chart-container {
   margin-top: 14px;
   display: flex;
@@ -137,12 +132,12 @@ body {
 
 #usageChart {
   border-radius: 18px;
-  background: radial-gradient(circle at 20% 20%, #fdfefe, #f2f4f8);
-  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+  background: transparent; /* match app background */
+  box-shadow: none;        /* optional: remove card look */
 }
 
-/* Details + button */
 
+/* Details */
 .details-panel {
   margin-top: 10px;
   text-align: center;
@@ -156,26 +151,26 @@ body {
 
 #segmentValue {
   font-size: 13px;
-  color: #505769;
+  color: #405050;
 }
 
+/* Primary button (match dark blue) */
 .primary-btn {
   margin-top: 12px;
   border: none;
   border-radius: 999px;
-  background: #2f80ed;
+  background: #7086FD; /* Dark Blue */
   color: #ffffff;
   padding: 10px 40px;
   font-size: 14px;
   cursor: pointer;
-  box-shadow: 0 6px 14px rgba(47,128,237,0.35);
+  box-shadow: 0 6px 14px rgba(112,134,253,0.35);
 }
 
 /* Legend */
-
 .legend {
   margin-top: 14px;
-  border-top: 1px solid #edf0f7;
+  border-top: 1px solid rgba(0,0,0,0.08);
   padding-top: 10px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -196,12 +191,11 @@ body {
 }
 
 /* Bottom nav */
-
 .tab-bar {
   display: flex;
-  border-top: 1px solid #e2e6ee;
+  border-top: 1px solid rgba(0,0,0,0.08);
   padding: 4px 0;
-  background: #f9fafc;
+  background: #DAFCF3;
 }
 
 .tab-button {
@@ -209,30 +203,27 @@ body {
   border: none;
   background: transparent;
   font-size: 11px;
-  color: #8e95a5;
+  color: #5a6a6a;
   text-align: center;
   cursor: pointer;
   padding: 4px 0 6px;
 }
 
-.tab-button span {
-  font-size: 11px;
-}
-
 .tab-button.active {
-  color: #2f3038;
+  color: #000000;
   font-weight: 600;
 }
 
-/* ---------- Modal for Add Category ---------- */
+/* ---------- Modal for Add/Edit Category (restore clean layout) ---------- */
 
 .modal {
-  position: absolute;
+  position: fixed;          /* IMPORTANT: don’t keep it as absolute */
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: auto;
+  pointer-events: none;     /* IMPORTANT: only modal-content should receive clicks */
+  z-index: 999;
 }
 
 .modal.hidden {
@@ -243,12 +234,13 @@ body {
   position: absolute;
   inset: 0;
   background: rgba(0,0,0,0.25);
+  pointer-events: auto;     /* backdrop can be clicked */
 }
 
 .modal-content {
   position: relative;
   z-index: 1;
-  pointer-events: auto;
+  pointer-events: auto;     /* content clickable */
   width: 80%;
   max-width: 320px;
   background: #ffffff;
@@ -259,14 +251,14 @@ body {
 
 .modal-title {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 10px;
 }
 
 .modal-field {
   display: flex;
   flex-direction: column;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   font-size: 12px;
 }
 
@@ -276,71 +268,29 @@ body {
 }
 
 .modal-field input {
+  width: 100%;
   border-radius: 8px;
   border: 1px solid #d3d9e6;
-  padding: 6px 8px;
+  padding: 8px 10px;
   font-size: 13px;
 }
 
 .modal-hint {
   font-size: 11px;
   color: #8e95a5;
-  margin: 4px 0 10px;
+  margin: 6px 0 12px;
+  line-height: 1.35;
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  align-items: center;
 }
 
-/* Buttons */
-
+/* Buttons inside modal */
 .secondary-btn {
-  border-radius: 999px;
-  border: 1px solid #d3d9e6;
-  background: #ffffff;
-  padding: 6px 14px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.primary-btn.small {
-  padding: 6px 18px;
-  box-shadow: 0 4px 10px rgba(47,128,237,0.25);
-  font-size: 13px;
-}
-
-.danger-btn {
-  border-radius: 999px;
-  border: 1px solid #f08a8a;
-  background: #fff5f5;
-  color: #d64545;
-  padding: 6px 14px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-/* tweak modal actions a bit so 3 buttons fit nicely */
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.edit-row {
-  margin-top: 12px;
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-
-.hidden {
-  display: none !important;
-}
-
-/* Small variant of secondary button used for "New" */
-.secondary-btn.small {
   border-radius: 999px;
   border: 1px solid #d3d9e6;
   background: #ffffff;
@@ -348,3 +298,27 @@ body {
   font-size: 13px;
   cursor: pointer;
 }
+
+.primary-btn.small {
+  border-radius: 999px;
+  border: none;
+  padding: 8px 18px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.danger-btn {
+  border-radius: 999px;
+  border: 1px solid #f08a8a;
+  background: #fff5f5;
+  color: #d64545;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* keep this as-is */
+.hidden {
+  display: none !important;
+}
+
